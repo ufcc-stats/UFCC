@@ -1,1 +1,13 @@
-null
+{
+  "champion": "Valencia CF",
+  "kickoff_utc": "2026-08-16T15:00:00Z",
+  "home": "Valencia CF",
+  "away": "Real Betis Balompié",
+  "home_crest": "https://crests.football-data.org/95.png",
+  "away_crest": "https://crests.football-data.org/90.png",
+  "competition": "Primera Division",
+  "venue": "",
+  "is_home": true,
+  "opponent": "Real Betis Balompié",
+  "opponent_crest": "https://crests.football-data.org/90.png"
+}
