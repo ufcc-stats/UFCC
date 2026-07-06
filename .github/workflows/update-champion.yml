@@ -1,14 +1,16 @@
 name: Update champion
 
 on:
-  schedule:
-    # Cada 5 minutos. update_from_api.py decide internamente si toca actuar:
-    #   - siempre actúa en el minuto :00 (un chequeo horario base)
-    #   - también actúa si estamos en la ventana de fin del próximo partido
-    #     conocido (kickoff + 95 min … kickoff + 5 h), para reflejar el
-    #     resultado con max ~5 min de retraso sin sobrecargar la API.
-    # Si no toca, el script hace exit 0 sin commits ni llamadas a la API.
-    - cron: "*/5 * * * *"
+  # ⏸️ Cron PAUSADO (sin partidos hasta septiembre 2026) para ahorrar minutos de
+  # GitHub Actions. Para reactivar, descomenta el bloque `schedule` de abajo.
+  # schedule:
+  #   # Cada 5 minutos. update_from_api.py decide internamente si toca actuar:
+  #   #   - siempre actúa en el minuto :00 (un chequeo horario base)
+  #   #   - también actúa si estamos en la ventana de fin del próximo partido
+  #   #     conocido (kickoff + 95 min … kickoff + 5 h), para reflejar el
+  #   #     resultado con max ~5 min de retraso sin sobrecargar la API.
+  #   # Si no toca, el script hace exit 0 sin commits ni llamadas a la API.
+  #   - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       force:
