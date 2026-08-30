@@ -360,9 +360,9 @@ NEXT_MATCH_PATH = Path("docs/data/next_match.json")
 
 def should_skip_run() -> bool:
     """
-    Heurística para saltarse runs innecesarios del cron */5min:
+    Heurística para saltarse runs innecesarios del cron:
       - Si FORCE_UPDATE=1 está en env → no saltar.
-      - Si estamos en el minuto :05 de la hora → no saltar (chequeo horario base).
+      - Si estamos en la primera media hora → no saltar (chequeo horario base).
       - Si no hay next_match.json → no saltar (puede ser primera vez).
       - Si next_match.json es null/sin kickoff (campeón sin partido próximo,
         fin de temporada) → saltar; el chequeo horario ya basta.
@@ -373,10 +373,10 @@ def should_skip_run() -> bool:
     if os.environ.get("FORCE_UPDATE") == "1":
         return False
     now = datetime.now(timezone.utc)
-    # Bucket horario: el cron */5 dispara en :00, :05, :10... Tratamos :00 como
-    # el chequeo de cada hora (siempre lo hacemos para no perder updates aunque
-    # no haya next_match planeado).
-    if now.minute < 5:
+    # Chequeo horario base. El cron dispara en :00, pero GitHub retrasa los
+    # schedules a menudo 10-20 min, y con un margen de 5 el chequeo se perdería
+    # casi siempre; media hora absorbe el retraso típico.
+    if now.minute < 30:
         return False
     if not NEXT_MATCH_PATH.exists():
         return False
