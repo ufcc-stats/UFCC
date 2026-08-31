@@ -2,11 +2,16 @@ name: Update champion
 
 on:
   schedule:
-    # Cada hora. A */5 esto se comía la cuota de Actions: se factura por job
-    # redondeando al minuto, así que da igual que el script salga en 3 segundos.
-    # El campeón solo cambia cuando juega el campeón, así que con cadencia horaria
-    # el relevo se refleja con menos de una hora de retraso.
-    - cron: "0 * * * *"
+    # Bloque gestionado por schedule_next_run.py: despertares calculados a
+    # partir del próximo partido del campeón. NO editar a mano.
+    # >>> AUTO-SCHEDULE
+    - cron: "20 18 6 9 *"
+    - cron: "0 19 6 9 *"
+    - cron: "30 20 6 9 *"
+    # <<< AUTO-SCHEDULE
+    # Red de seguridad: un chequeo diario pase lo que pase. También mantiene el
+    # repo con actividad para que GitHub no desactive los crons por inactividad.
+    - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -24,8 +29,15 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      # El GITHUB_TOKEN tiene PROHIBIDO escribir en .github/workflows/, así que
+      # sin un PAT propio no podemos reprogramar el cron. Sin él todo sigue
+      # funcionando: queda el chequeo diario.
+      HAS_WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT != '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_PAT || github.token }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,11 +47,18 @@ jobs:
       - name: Run API update
         env:
           FOOTBALL_DATA_KEY: ${{ secrets.FOOTBALL_DATA_KEY }}
-          FORCE_UPDATE: ${{ github.event.inputs.force || '0' }}
+          # Los despertares tras un partido ya caen dentro de la ventana que
+          # comprueba el script. El cron diario, en cambio, es la red de
+          # seguridad: ahí queremos mirar sí o sí, sin heurísticas.
+          FORCE_UPDATE: ${{ (github.event.inputs.force == '1' || github.event.schedule == '0 6 * * *') && '1' || '0' }}
         run: python update_from_api.py
 
       - name: Re-export web data
         run: python export_web.py
+
+      - name: Reprogramar el cron según el próximo partido
+        if: env.HAS_WORKFLOW_PAT == 'true'
+        run: python schedule_next_run.py
 
       - name: Commit + push if changed
         run: |

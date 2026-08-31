@@ -373,9 +373,9 @@ def should_skip_run() -> bool:
     if os.environ.get("FORCE_UPDATE") == "1":
         return False
     now = datetime.now(timezone.utc)
-    # Chequeo horario base. El cron dispara en :00, pero GitHub retrasa los
-    # schedules a menudo 10-20 min, y con un margen de 5 el chequeo se perdería
-    # casi siempre; media hora absorbe el retraso típico.
+    # Colchón por si algún run llega fuera de la ventana del partido: GitHub
+    # retrasa los schedules a menudo 10-20 min. El chequeo de verdad es la
+    # ventana de abajo; el cron diario llega ya con FORCE_UPDATE=1.
     if now.minute < 30:
         return False
     if not NEXT_MATCH_PATH.exists():
